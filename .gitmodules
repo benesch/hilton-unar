@@ -22,3 +22,54 @@
 [submodule "extensions/xssfilter"]
 	path = extensions/xssfilter
 	url = git://github.com/symphonycms/xssfilter.git
+[submodule "extensions/asdc"]
+	path = extensions/asdc
+	url = git://github.com/pointybeard/asdc.git
+[submodule "extensions/dashboard"]
+	path = extensions/dashboard
+	url = git://github.com/nickdunn/dashboard.git
+[submodule "extensions/datetime"]
+	path = extensions/datetime
+	url = git://github.com/nilshoerrmann/datetime.git
+[submodule "extensions/documenter"]
+	path = extensions/documenter
+	url = git://github.com/czheng/documenter.git
+[submodule "extensions/tracker"]
+	path = extensions/tracker
+	url = git://github.com/czheng/tracker.git
+[submodule "extensions/symphony-wmd-editor"]
+	path = extensions/symphony-wmd-editor
+	url = git://github.com/dougoftheabaci/Symphony-WMD-Editor.git
+[submodule "extensions/subsectionmanager"]
+	path = extensions/subsectionmanager
+	url = git://github.com/nilshoerrmann/subsectionmanager.git
+[submodule "extensions/smtp_email_library"]
+	path = extensions/smtp_email_library
+	url = https://github.com/pointybeard/smtp_email_library.git
+[submodule "extensions/pagesfield"]
+	path = extensions/pagesfield
+	url = git://github.com/pointybeard/pagesfield.git
+[submodule "extensions/order_entries"]
+	path = extensions/order_entries
+	url = git://github.com/nilshoerrmann/order_entries.git
+[submodule "extensions/markdown_guide"]
+	path = extensions/markdown_guide
+	url = git://github.com/wisolman/markdown_guide.git
+[submodule "extensions/filemanager"]
+	path = extensions/filemanager
+	url = git://github.com/pointybeard/filemanager.git
+[submodule "extensions/cachelite"]
+	path = extensions/cachelite
+	url = git://github.com/makenosound/cachelite.git
+[submodule "extensions/codemirror"]
+	path = extensions/codemirror
+	url = git://github.com/czheng/codemirror.git
+[submodule "extensions/dont_drop"]
+	path = extensions/dont_drop
+	url = git://github.com/nils-werner/dont_drop.git
+[submodule "extensions/maplocationfield"]
+	path = extensions/maplocationfield
+	url = git://github.com/nickdunn/maplocationfield.git
+[submodule "extensions/static_section"]
+	path = extensions/static_section
+	url = git://github.com/knupska/static_section.git
