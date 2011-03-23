@@ -1,52 +1,61 @@
 <?php
-	
+
 	if(!function_exists('buildFilterElement')){
 		function buildFilterElement($name, $status, $message=NULL, array $attr=NULL){
 			$ret = new XMLElement('filter', (!$message || is_object($message) ? NULL : $message), array('name' => $name, 'status' => $status));
 			if(is_object($message)) $ret->appendChild($message);
-			
+
 			if($attr) $ret->setAttributeArray($attr);
-			
+
 			return $ret;
 		}
 	}
-	
+
 	if (!function_exists('__doit')) {
-		function __doit($source, $fields, &$result, &$obj, &$event, $filters, $position=NULL, $entry_id=NULL){
+		function __doit($source, $fields, &$result, &$event, $filters = array(), $position=NULL, $entry_id=NULL){
 
 			$post_values = new XMLElement('post-values');
-			$filter_results = array();	
-			
+			$filter_results = array();
+			if(!is_array($filters)) $filters = array();
+
 			## Create the post data cookie element
 			if (is_array($fields) && !empty($fields)) {
 				General::array_to_xml($post_values, $fields, true);
 			}
-			
-			###
-			# Delegate: EventPreSaveFilter
-			# Description: Prior to saving entry from the front-end. This delegate will 
-			#			   force the Event to terminate if it populates the error
-			#              array reference. Provided with references to this object, the 
-			#			   POST data and also the error array
-			$obj->ExtensionManager->notifyMembers(
-				'EventPreSaveFilter', 
-				'/frontend/', 
+
+			/**
+			 * Prior to saving entry from the front-end. This delegate will
+			 * force the Event to terminate if it populates the error
+			 * array reference. Provided with references to this object, the
+			 * `$_POST` data and also the error array
+			 *
+			 * @delegate EventPreSaveFilter
+			 * @param string $context
+			 * '/frontend/'
+			 * @param array $fields
+			 * @param string $event
+			 * @param array $filter_results
+			 * @param XMLElement $post_values
+			 */
+			Symphony::ExtensionManager()->notifyMembers(
+				'EventPreSaveFilter',
+				'/frontend/',
 				array(
-					'fields' => $fields, 
-					'event' => &$event, 
-					'messages' => &$filter_results, 
+					'fields' => $fields,
+					'event' => &$event,
+					'messages' => &$filter_results,
 					'post_values' => &$post_values
 				)
 			);
-			
+
 			if (is_array($filter_results) && !empty($filter_results)) {
 				$can_proceed = true;
 
 				foreach ($filter_results as $fr) {
 					list($type, $status, $message) = $fr;
-					
+
 					$result->appendChild(buildFilterElement($type, ($status ? 'passed' : 'failed'), $message));
-					
+
 					if($status === false) $can_proceed = false;
 				}
 
@@ -57,26 +66,26 @@
 					return false;
 				}
 			}
-			
+
 			include_once(TOOLKIT . '/class.sectionmanager.php');
 			include_once(TOOLKIT . '/class.entrymanager.php');
 
-			$sectionManager = new SectionManager($obj);
+			$sectionManager = new SectionManager(Symphony::Engine());
 
 			if(!$section = $sectionManager->fetch($source)){
-				$result->setAttribute('result', 'error');			
+				$result->setAttribute('result', 'error');
 				$result->appendChild(new XMLElement('message', __('Section is invalid')));
 				return false;
 			}
 
-			$entryManager = new EntryManager($obj);
+			$entryManager = new EntryManager(Symphony::Engine());
 
 			if(isset($entry_id) && $entry_id != NULL){
-				$entry =& $entryManager->fetch($entry_id);	
+				$entry =& $entryManager->fetch($entry_id);
 				$entry = $entry[0];
 
 				if(!is_object($entry)){
-					$result->setAttribute('result', 'error');			
+					$result->setAttribute('result', 'error');
 					$result->appendChild(new XMLElement('message', __('Invalid Entry ID specified. Could not create Entry object.')));
 					return false;
 				}
@@ -96,17 +105,17 @@
 
 				foreach($errors as $field_id => $message){
 					$field = $entryManager->fieldManager->fetch($field_id);
-					$result->appendChild(new XMLElement($field->get('element_name'), NULL, array('type' => ($fields[$field->get('element_name')] == '' ? 'missing' : 'invalid'), 'message' => General::sanitize($message))));
+					$result->appendChild(new XMLElement($field->get('element_name'), NULL, array('label' => General::sanitize($field->get('label')), 'type' => ($fields[$field->get('element_name')] == '' ? 'missing' : 'invalid'), 'message' => General::sanitize($message))));
 				}
 
-				if(isset($post_values) && is_object($post_values)) $result->appendChild($post_values);		
+				if(isset($post_values) && is_object($post_values)) $result->appendChild($post_values);
 
 				return false;
 
 			elseif(__ENTRY_OK__ != $entry->setDataFromPost($fields, $errors, false, ($entry->get('id') ? true : false))):
 				$result->setAttribute('result', 'error');
 				$result->appendChild(new XMLElement('message', __('Entry encountered errors when saving.')));
-				
+
 				if(isset($errors['field_id'])){
 					$errors = array($errors);
 				}
@@ -114,9 +123,9 @@
 				foreach($errors as $err){
 					$field = $entryManager->fieldManager->fetch($err['field_id']);
 					$result->appendChild(new XMLElement($field->get('element_name'), NULL, array('type' => 'invalid')));
-				}		
+				}
 
-				if(isset($post_values) && is_object($post_values)) $result->appendChild($post_values);		
+				if(isset($post_values) && is_object($post_values)) $result->appendChild($post_values);
 
 				return false;
 
@@ -125,17 +134,17 @@
 				if(!$entry->commit()){
 					$result->setAttribute('result', 'error');
 					$result->appendChild(new XMLElement('message', __('Unknown errors where encountered when saving.')));
-					if(isset($post_values) && is_object($post_values)) $result->appendChild($post_values);		
+					if(isset($post_values) && is_object($post_values)) $result->appendChild($post_values);
 					return false;
 				}
-				
+
 				$result->setAttribute('id', $entry->get('id'));
 
-			endif;			
+			endif;
 
-			## PASSIVE FILTERS ONLY AT THIS STAGE. ENTRY HAS ALREADY BEEN CREATED. 
+			## PASSIVE FILTERS ONLY AT THIS STAGE. ENTRY HAS ALREADY BEEN CREATED.
 
-			if(@in_array('send-email', $filters) && !@in_array('expect-multiple', $filters)){
+			if(in_array('send-email', $filters) && !in_array('expect-multiple', $filters)){
 
 				if(!function_exists('__sendEmailFindFormValue')){
 					function __sendEmailFindFormValue($needle, $haystack, $discard_field_name=true, $default=NULL, $collapse=true){
@@ -145,7 +154,7 @@
 							$parts = array_map('trim', $parts);
 
 							$stack = array();
-							foreach($parts as $p){ 
+							foreach($parts as $p){
 								$field = str_replace(array('fields[', ']'), '', $p);
 								($discard_field_name ? $stack[] = $haystack[$field] : $stack[$field] = $haystack[$field]);
 							}
@@ -163,18 +172,19 @@
 				}
 
 				$fields = $_POST['send-email'];
-				
-				$fields['recipient'] = __sendEmailFindFormValue($fields['recipient'], $_POST['fields'], true);
-				$fields['recipient'] = preg_split('/\,/i', $fields['recipient'], -1, PREG_SPLIT_NO_EMPTY);
-				$fields['recipient'] = array_map('trim', $fields['recipient']);
-				$fields['recipient'] = array_map(array('MySQL','cleanValue'), $fields['recipient']);
 
-				$fields['recipient'] = $obj->Database->fetch("SELECT `email`, `first_name` FROM `tbl_authors` WHERE `username` IN ('".@implode("', '", $fields['recipient'])."') ");
+				$fields['recipient']		= __sendEmailFindFormValue($fields['recipient'], $_POST['fields'], true);
+				$fields['recipient']		= preg_split('/\,/i', $fields['recipient'], -1, PREG_SPLIT_NO_EMPTY);
+				$fields['recipient']		= array_map('trim', $fields['recipient']);
+				$fields['recipient']		= Symphony::Database()->fetch("SELECT `email`, `first_name` FROM `tbl_authors` WHERE `username` IN ('".@implode("', '", $fields['recipient'])."') ");
 
-				$fields['subject'] = __sendEmailFindFormValue($fields['subject'], $_POST['fields'], true, __('[Symphony] A new entry was created on %s', array($obj->Configuration->get('sitename', 'general'))));
-				$fields['body'] = __sendEmailFindFormValue($fields['body'], $_POST['fields'], false, NULL, false);
-				$fields['sender-email'] = __sendEmailFindFormValue($fields['sender-email'], $_POST['fields'], true, 'noreply@' . parse_url(URL, PHP_URL_HOST));
-				$fields['sender-name'] = __sendEmailFindFormValue($fields['sender-name'], $_POST['fields'], true, 'Symphony');
+				$fields['subject']			= __sendEmailFindFormValue($fields['subject'], $_POST['fields'], true, __('[Symphony] A new entry was created on %s', array(Symphony::Configuration()->get('sitename', 'general'))));
+				$fields['body']				= __sendEmailFindFormValue($fields['body'], $_POST['fields'], false, NULL, false);
+				$fields['sender-email']		= __sendEmailFindFormValue($fields['sender-email'], $_POST['fields'], true, NULL);
+				$fields['sender-name']		= __sendEmailFindFormValue($fields['sender-name'], $_POST['fields'], true, NULL);
+
+				$fields['reply-to-name']	= __sendEmailFindFormValue($fields['reply-to-name'], $_POST['fields'], true, NULL);
+				$fields['reply-to-email']	= __sendEmailFindFormValue($fields['reply-to-email'], $_POST['fields'], true, NULL);
 
 				$edit_link = URL.'/symphony/publish/'.$section->get('handle').'/edit/'.$entry->get('id').'/';
 
@@ -195,23 +205,61 @@
 				}
 
 				else{
+
 					foreach($fields['recipient'] as $r){
 
-						list($email, $name) = array_values($r);
+						$email = Email::create();
 
-						if(!General::sendEmail($email, 
-										   $fields['sender-email'], 
-										   $fields['sender-name'], 
-										   $fields['subject'], 
-										   str_replace('<!-- RECIPIENT NAME -->', $name, $body)))
-										       $errors[] = $email;
+						// Huib: Exceptions are also thrown in the settings functions, not only in the send function.
+						// Those Exceptions should be caught too.
+						try{
+							list($recipient, $name) = array_values($r);
+
+							$email->recipients = Array($name => $recipient);
+							if($fields['sender-name'] != null){
+								$email->sender_name = $fields['sender-name'];
+							}
+							if($fields['sender-email'] != null){
+								$email->sender_email_address = $fields['sender-email'];
+							}
+							if($fields['reply-to-name'] != null){
+								$email->reply_to_name = $fields['reply-to-name'];
+							}
+							if($fields['reply-to-email'] != null){
+								$email->reply_to_email_address = $fields['reply-to-email'];
+							}
+
+							$email->text_plain = str_replace('<!-- RECIPIENT NAME -->', $name, $body);
+							$email->subject = $fields['subject'];
+
+							$email->send();
+						}
+						catch(EmailValidationException $e){
+							$errors['address'] = $recipient;
+						}
+						catch(EmailGatewayException $e){
+							// The current error array does not permit custom tags.
+							// Therefore, it is impossible to set a "proper" error message.
+							// Will return the failed email address instead.
+							$errors['gateway'] = $recipient;
+						}
+						catch(EmailException $e){
+							// Because we don't want symphony to break because it can not send emails,
+							// all exceptions are logged silently.
+							// Any custom event can change this behaviour.
+							$errors['email'] = $recipient;
+							$emailError = true;
+						}
 
 					}
 
 					if(!empty($errors)){
 
 						$xml = buildFilterElement('send-email', 'failed');
-						foreach($errors as $address) $xml->appendChild(new XMLElement('recipient', $address));
+						$keys = array_keys($errors);
+						$xml->setAttribute('error-type', $keys[0]);
+
+						foreach($errors as $recipient) $xml->appendChild(new XMLElement('recipient', $recipient));
 
 						$result->appendChild($xml);
 
@@ -223,29 +271,47 @@
 
 			$filter_results = array();
 
-			###
-			# Delegate: EventPostSaveFilter
-			# Description: After saving entry from the front-end. This delegate will not force the Events to terminate if it populates the error
-			#              array reference. Provided with references to this object, the POST data and also the error array
-			$obj->ExtensionManager->notifyMembers('EventPostSaveFilter', '/frontend/', array('entry_id' => $entry->get('id'), 
-																							 'fields' => $fields, 
-																							 'entry' => $entry, 
-																							 'event' => &$event, 
-																							 'messages' => &$filter_results));
-																							
+			/**
+			 * After saving entry from the front-end. This delegate will not force
+			 * the Events to terminate if it populates the error array reference.
+			 * Provided with references to this object, the `$_POST` data and also
+			 * the error array
+			 *
+			 * @delegate EventPostSaveFilter
+			 * @param string $context
+			 * '/frontend/'
+			 * @param integer $entry_id
+			 * @param array $fields
+			 * @param Entry $entry
+			 * @param string $event
+			 * @param array $messages
+			 */
+			Symphony::ExtensionManager()->notifyMembers('EventPostSaveFilter', '/frontend/', array(
+				'entry_id' => $entry->get('id'),
+				'fields' => $fields,
+				'entry' => $entry,
+				'event' => &$event,
+				'messages' => &$filter_results
+			));
 
 			if(is_array($filter_results) && !empty($filter_results)){
 				foreach($filter_results as $fr){
 					list($type, $status, $message) = $fr;
 
 					$result->appendChild(buildFilterElement($type, ($status ? 'passed' : 'failed'), $message));
-
 				}
 			}
-			
-			###
-			# Delegate: EventFinalSaveFilter
-			$obj->ExtensionManager->notifyMembers(
+
+			/**
+			 * @delegate EventFinalSaveFilter
+			 * @param string $context
+			 * '/frontend/'
+			 * @param array $fields
+			 * @param string $event
+			 * @param array $filter_errors
+			 * @param Entry $entry
+			 */
+			Symphony::ExtensionManager()->notifyMembers(
 				'EventFinalSaveFilter', '/frontend/', array(
 					'fields'	=> $fields,
 					'event'		=> &$event,
@@ -253,64 +319,63 @@
 					'entry'		=> $entry
 				)
 			);
-			
+
 			$result->setAttributeArray(array('result' => 'success', 'type' => (isset($entry_id) ? 'edited' : 'created')));
 			$result->appendChild(new XMLElement('message', (isset($entry_id) ? __('Entry edited successfully.') : __('Entry created successfully.'))));
 			if(isset($post_values) && is_object($post_values)) $result->appendChild($post_values);
-			
+
 			return true;
-			
+
 			## End Function
 		}
 	}
-	
+
 	if(!isset($this->eParamFILTERS) || !is_array($this->eParamFILTERS)){
 		$this->eParamFILTERS = array();
 	}
-	
+
 	$result = new XMLElement(self::ROOTELEMENT);
-	
-	if(@in_array('admin-only', $this->eParamFILTERS) && !$this->_Parent->isLoggedIn()){
-		$result->setAttribute('result', 'error');			
+
+	if(in_array('admin-only', $this->eParamFILTERS) && !Symphony::Engine()->isLoggedIn()){
+		$result->setAttribute('result', 'error');
 		$result->appendChild(new XMLElement('message', __('Entry encountered errors when saving.')));
 		$result->appendChild(buildFilterElement('admin-only', 'failed'));
 		return $result;
 	}
 
-	$entry_id = $position = $fields = NULL;	
+	$entry_id = $position = $fields = NULL;
 	$post = General::getPostData();
 	$success = true;
-	
+
 	if (in_array('expect-multiple', $this->eParamFILTERS)) {
 		if (is_array($post['fields']) && isset($post['fields'][0])) {
 			foreach ($post['fields'] as $position => $fields) {
 				if (isset($post['id'][$position]) && is_numeric($post['id'][$position])) {
 					$entry_id = $post['id'][$position];
 				}
-				
+
 				$entry = new XMLElement('entry', NULL, array('position' => $position));
-				
+
 				$ret = __doit(
-					self::getSource(), $fields, $entry, $this->_Parent,
-					$this, $this->eParamFILTERS, $position, $entry_id
+					self::getSource(), $fields, $entry, $this, $this->eParamFILTERS, $position, $entry_id
 				);
-				
+
 				if (!$ret) $success = false;
-				
+
 				$result->appendChild($entry);
 			}
 		}
 	}
-	
+
 	else {
 		$fields = $post['fields'];
 		$entry_id = NULL;
-		
+
 		if (isset($post['id']) && is_numeric($post['id'])) $entry_id = $post['id'];
-		
-		$success = __doit(self::getSource(), $fields, $result, $this->_Parent, $this, $this->eParamFILTERS, NULL, $entry_id);
+
+		$success = __doit(self::getSource(), $fields, $result, $this, $this->eParamFILTERS, NULL, $entry_id);
 	}
-	
+
 	if($success && isset($_REQUEST['redirect'])) redirect($_REQUEST['redirect']);
-	
+
 	## return $result;

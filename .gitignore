@@ -7,4 +7,6 @@ workspace/
 manifest/
 *.esproj
 *~
+*.geany
+install-log.txt
 error_log
