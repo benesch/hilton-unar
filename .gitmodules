@@ -73,3 +73,9 @@
 [submodule "extensions/static_section"]
 	path = extensions/static_section
 	url = git://github.com/knupska/static_section.git
+[submodule "extensions/importcsv"]
+	path = extensions/importcsv
+	url = git://github.com/kanduvisla/importcsv.git
+[submodule "extensions/uniqueuploadfield"]
+	path = extensions/uniqueuploadfield
+	url = git://github.com/michael-e/uniqueuploadfield.git
