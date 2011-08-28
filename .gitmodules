@@ -45,13 +45,13 @@
 	url = git://github.com/nilshoerrmann/subsectionmanager.git
 [submodule "extensions/smtp_email_library"]
 	path = extensions/smtp_email_library
-	url = https://github.com/pointybeard/smtp_email_library.git
+	url = git://github.com/pointybeard/smtp_email_library.git
 [submodule "extensions/pagesfield"]
 	path = extensions/pagesfield
 	url = git://github.com/pointybeard/pagesfield.git
 [submodule "extensions/order_entries"]
 	path = extensions/order_entries
-	url = git://github.com/nilshoerrmann/order_entries.git
+	url = git://github.com/nickdunn/order_entries.git
 [submodule "extensions/markdown_guide"]
 	path = extensions/markdown_guide
 	url = git://github.com/wisolman/markdown_guide.git
@@ -63,7 +63,7 @@
 	url = git://github.com/makenosound/cachelite.git
 [submodule "extensions/codemirror"]
 	path = extensions/codemirror
-	url = git://github.com/czheng/codemirror.git
+	url = git://github.com/oleae/codemirror.git
 [submodule "extensions/dont_drop"]
 	path = extensions/dont_drop
 	url = git://github.com/nils-werner/dont_drop.git
@@ -79,3 +79,6 @@
 [submodule "extensions/uniqueuploadfield"]
 	path = extensions/uniqueuploadfield
 	url = git://github.com/michael-e/uniqueuploadfield.git
+[submodule "extensions/members"]
+	path = extensions/members
+	url = http://github.com/symphonycms/members.git
