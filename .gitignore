@@ -5,6 +5,7 @@
 .htaccess
 workspace/
 manifest/
+extensions/
 *.esproj
 *~
 *.geany

@@ -25,9 +25,6 @@
 [submodule "extensions/asdc"]
 	path = extensions/asdc
 	url = git://github.com/pointybeard/asdc.git
-[submodule "extensions/datetime"]
-	path = extensions/datetime
-	url = git://github.com/nilshoerrmann/datetime.git
 [submodule "extensions/documenter"]
 	path = extensions/documenter
 	url = git://github.com/czheng/documenter.git
@@ -79,3 +76,21 @@
 [submodule "extensions/members"]
 	path = extensions/members
 	url = http://github.com/symphonycms/members.git
+[submodule "extensions/eventex"]
+	path = extensions/eventex
+	url = git://github.com/yourheropaul/eventex.git
+[submodule "extensions/databasemanipulator"]
+	path = extensions/databasemanipulator
+	url = git://github.com/yourheropaul/databasemanipulator.git
+[submodule "extensions/duplicate_entry"]
+	path = extensions/duplicate_entry
+	url = git://github.com/nickdunn/duplicate_entry
+[submodule "extensions/publishfiltering"]
+	path = extensions/publishfiltering
+	url = git://github.com/nickdunn/publishfiltering.git
+[submodule "datetime"]
+	path = datetime
+	url = git://github.com/hananils/datetime.git
+[submodule "extensions/datetime"]
+	path = extensions/datetime
+	url = git://github.com/hananils/datetime.git
